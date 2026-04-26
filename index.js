@@ -1,8 +1,7 @@
 const {
   Client,
   GatewayIntentBits,
-  ActionRowBuilder,
-  StringSelectMenuBuilder,
+  Partials,
   EmbedBuilder,
   PermissionsBitField
 } = require('discord.js');
@@ -10,50 +9,51 @@ const {
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessageReactions,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent
+  ],
+  partials: [
+    Partials.Message,
+    Partials.Channel,
+    Partials.Reaction
   ]
 });
 
 const TOKEN = process.env.TOKEN;
 const MAX_ROLES = 5;
 
-// الأندية (مع ألوان صحيحة)
-const clubs = [
-  // 🇸🇦
-  { label: "الهلال", value: "hilal", color: 0x0047AB },
-  { label: "النصر", value: "nassr", color: 0xFCD116 },
-  { label: "الأهلي", value: "ahli", color: 0x006C35 },
-  { label: "الاتحاد", value: "ittihad", color: 0xFFD700 },
+const clubs = {
+  "hilal": { name: "هلالي", color: 0x0047AB },
+  "nassr": { name: "نصراوي", color: 0xFCD116 },
+  "ahli": { name: "أهلاوي", color: 0x006C35 },
+  "ittihad": { name: "اتحادي", color: 0xFFC72C },
 
-  // 🌍
-  { label: "Real Madrid", value: "realmadrid", color: 0xFFFFFF },
-  { label: "Barcelona", value: "barcelona", color: 0x004D98 },
-  { label: "Manchester City", value: "mancity", color: 0x6CABDD },
-  { label: "Manchester United", value: "manutd", color: 0xDA291C },
-  { label: "Liverpool", value: "liverpool", color: 0xC8102E },
-  { label: "AC Milan", value: "milan", color: 0x9B1B30 },
-  { label: "Chelsea", value: "chelsea", color: 0x034694 },
-  { label: "Arsenal", value: "arsenal", color: 0xEF0107 }
-];
+  "realmadrid": { name: "Real Madrid", color: 0xFFFFFF },
+  "barcelona": { name: "Barcelona", color: 0x004D98 },
+  "mancity": { name: "Manchester City", color: 0x6CABDD },
+  "manutd": { name: "Manchester United", color: 0xDA291C },
+  "liverpool": { name: "Liverpool", color: 0xC8102E },
+  "chelsea": { name: "Chelsea", color: 0x034694 },
+  "arsenal": { name: "Arsenal", color: 0xEF0107 },
+  "milan": { name: "AC Milan", color: 0x9B1B30 }
+};
 
-// إنشاء أو جلب رتبة
 async function getOrCreateRole(guild, club) {
-  let role = guild.roles.cache.find(r => r.name === club.label);
+  let role = guild.roles.cache.find(r => r.name === club.name);
 
   if (!role) {
     role = await guild.roles.create({
-      name: club.label,
-      color: club.color,
-      reason: "Club Role Auto"
+      name: club.name,
+      color: club.color
     });
   }
 
   return role;
 }
 
-// أمر إرسال القائمة
+// 📩 إرسال الإيمبد
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
@@ -61,78 +61,60 @@ client.on("messageCreate", async (message) => {
     if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) return;
 
     const embed = new EmbedBuilder()
-      .setTitle("🏆 اختر أنديتك المفضلة")
-      .setDescription("اختر أنديتك من القائمة بالأسفل");
+      .setTitle("🏆 اختر ناديك المفضل")
+      .setDescription("يمكنك اختيار حتى 5 أندية عن طريق الضغط على الإيموجيات")
+      .setThumbnail("https://cdn.discordapp.com/attachments/1483219896069525665/1497917999758442577/IMG_1685.png?ex=69ef4459&is=69edf2d9&hm=a8d258019415072323e4fd7f2afa23f49f57014ebb1f163e2136e16e2427e377&"); // 🔥 حط رابط صورتك هنا
 
-    const menu = new StringSelectMenuBuilder()
-      .setCustomId("clubs_select")
-      .setPlaceholder("اختر الأندية")
-      .setMinValues(1)
-      .setMaxValues(MAX_ROLES)
-      .addOptions([
-        ...clubs.map(c => ({
-          label: c.label,
-          value: c.value
-        })),
-        {
-          label: "❌ إزالة كل الأندية",
-          value: "reset"
-        }
-      ]);
+    const msg = await message.channel.send({ embeds: [embed] });
 
-    const row = new ActionRowBuilder().addComponents(menu);
-
-    await message.channel.send({ embeds: [embed], components: [row] });
+    for (const emoji of Object.keys(clubs)) {
+      try {
+        await msg.react(emoji);
+      } catch {}
+    }
 
     message.delete().catch(() => {});
   }
 });
 
-// التعامل مع الاختيارات
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isStringSelectMenu()) return;
-  if (interaction.customId !== "clubs_select") return;
+// إضافة رياكشن
+client.on("messageReactionAdd", async (reaction, user) => {
+  if (user.bot) return;
+  if (reaction.partial) await reaction.fetch();
 
-  // حل مشكلة interaction failed
-  await interaction.deferReply({ ephemeral: true });
+  const club = clubs[reaction.emoji.name];
+  if (!club) return;
 
-  const member = interaction.member;
-  const clubNames = clubs.map(c => c.label);
+  const member = await reaction.message.guild.members.fetch(user.id);
 
-  // تصفير
-  if (interaction.values.includes("reset")) {
-    const oldRoles = member.roles.cache.filter(r =>
-      clubNames.includes(r.name)
-    );
-
-    for (const role of oldRoles.values()) {
-      await member.roles.remove(role);
-    }
-
-    return interaction.editReply({
-      content: "تم حذف جميع الأندية ❌"
-    });
-  }
-
-  // حذف القديم
-  const oldRoles = member.roles.cache.filter(r =>
+  const clubNames = Object.values(clubs).map(c => c.name);
+  const userRoles = member.roles.cache.filter(r =>
     clubNames.includes(r.name)
   );
 
-  for (const role of oldRoles.values()) {
-    await member.roles.remove(role);
+  if (userRoles.size >= MAX_ROLES) {
+    await reaction.users.remove(user.id);
+    return;
   }
 
-  // إضافة الجديد
-  for (const value of interaction.values) {
-    const club = clubs.find(c => c.value === value);
-    const role = await getOrCreateRole(interaction.guild, club);
-    await member.roles.add(role);
-  }
+  const role = await getOrCreateRole(reaction.message.guild, club);
+  await member.roles.add(role);
+});
 
-  await interaction.editReply({
-    content: "تم تحديث أنديتك ✅"
-  });
+// إزالة رياكشن
+client.on("messageReactionRemove", async (reaction, user) => {
+  if (user.bot) return;
+  if (reaction.partial) await reaction.fetch();
+
+  const club = clubs[reaction.emoji.name];
+  if (!club) return;
+
+  const member = await reaction.message.guild.members.fetch(user.id);
+
+  const role = reaction.message.guild.roles.cache.find(r => r.name === club.name);
+  if (!role) return;
+
+  await member.roles.remove(role);
 });
 
 client.login(TOKEN);
