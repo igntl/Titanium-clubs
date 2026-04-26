@@ -22,8 +22,8 @@ const client = new Client({
 });
 
 const TOKEN = process.env.TOKEN;
-const MAX_ROLES = 5;
 
+// الربط
 const clubs = {
   "hilal": { name: "هلالي", color: 0x0047AB },
   "nassr": { name: "نصراوي", color: 0xFCD116 },
@@ -40,6 +40,7 @@ const clubs = {
   "milan": { name: "AC Milan", color: 0x9B1B30 }
 };
 
+// إنشاء الرتبة
 async function getOrCreateRole(guild, club) {
   let role = guild.roles.cache.find(r => r.name === club.name);
 
@@ -61,12 +62,11 @@ client.on("messageCreate", async (message) => {
     if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) return;
 
     const embed = new EmbedBuilder()
-      .setTitle("🏆 اختر ناديك المفضل")
-      .setDescription("يمكنك اختيار حتى 5 أندية عن طريق الضغط على الإيموجيات")
-      .setThumbnail("https://cdn.discordapp.com/attachments/1483219896069525665/1497917999758442577/IMG_1685.png?ex=69ef4459&is=69edf2d9&hm=a8d258019415072323e4fd7f2afa23f49f57014ebb1f163e2136e16e2427e377&"); // 🔥 حط رابط صورتك هنا
+      .setTitle("🏆 اختر ناديك المفضل");
 
     const msg = await message.channel.send({ embeds: [embed] });
 
+    // إضافة الإيموجيات
     for (const emoji of Object.keys(clubs)) {
       try {
         await msg.react(emoji);
@@ -86,16 +86,6 @@ client.on("messageReactionAdd", async (reaction, user) => {
   if (!club) return;
 
   const member = await reaction.message.guild.members.fetch(user.id);
-
-  const clubNames = Object.values(clubs).map(c => c.name);
-  const userRoles = member.roles.cache.filter(r =>
-    clubNames.includes(r.name)
-  );
-
-  if (userRoles.size >= MAX_ROLES) {
-    await reaction.users.remove(user.id);
-    return;
-  }
 
   const role = await getOrCreateRole(reaction.message.guild, club);
   await member.roles.add(role);
