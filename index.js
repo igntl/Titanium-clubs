@@ -23,7 +23,7 @@ const client = new Client({
 
 const TOKEN = process.env.TOKEN;
 
-// الربط
+// الربط (اسم الإيموجي = اسمك بالسيرفر)
 const clubs = {
   "hilal": { name: "هلالي", color: 0x0047AB },
   "nassr": { name: "نصراوي", color: 0xFCD116 },
@@ -40,7 +40,7 @@ const clubs = {
   "milan": { name: "AC Milan", color: 0x9B1B30 }
 };
 
-// إنشاء الرتبة
+// إنشاء أو جلب رتبة
 async function getOrCreateRole(guild, club) {
   let role = guild.roles.cache.find(r => r.name === club.name);
 
@@ -62,7 +62,8 @@ client.on("messageCreate", async (message) => {
     if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) return;
 
     const embed = new EmbedBuilder()
-      .setTitle("🏆 اختر ناديك المفضل");
+      .setTitle("🏆 اختر ناديك المفضل")
+      .setThumbnail("https://cdn.discordapp.com/attachments/1483219896069525665/1497917999758442577/IMG_1685.png");
 
     const msg = await message.channel.send({ embeds: [embed] });
 
@@ -70,7 +71,9 @@ client.on("messageCreate", async (message) => {
     for (const emoji of Object.keys(clubs)) {
       try {
         await msg.react(emoji);
-      } catch {}
+      } catch (err) {
+        console.log("Emoji error:", emoji);
+      }
     }
 
     message.delete().catch(() => {});
