@@ -19,16 +19,15 @@ const client = new Client({
 const TOKEN = process.env.TOKEN;
 const MAX_ROLES = 5;
 
-// 🇸🇦 الأندية السعودية
-const saudiClubs = [
+// الأندية (مع ألوان صحيحة)
+const clubs = [
+  // 🇸🇦
   { label: "الهلال", value: "hilal", color: 0x0047AB },
   { label: "النصر", value: "nassr", color: 0xFCD116 },
   { label: "الأهلي", value: "ahli", color: 0x006C35 },
-  { label: "الاتحاد", value: "ittihad", color: 0x000000 }
-];
+  { label: "الاتحاد", value: "ittihad", color: 0xFFD700 },
 
-// 🌍 الأندية الأوروبية
-const euClubs = [
+  // 🌍
   { label: "Real Madrid", value: "realmadrid", color: 0xFFFFFF },
   { label: "Barcelona", value: "barcelona", color: 0x004D98 },
   { label: "Manchester City", value: "mancity", color: 0x6CABDD },
@@ -38,8 +37,6 @@ const euClubs = [
   { label: "Chelsea", value: "chelsea", color: 0x034694 },
   { label: "Arsenal", value: "arsenal", color: 0xEF0107 }
 ];
-
-const clubs = [...saudiClubs, ...euClubs];
 
 // إنشاء أو جلب رتبة
 async function getOrCreateRole(guild, club) {
@@ -56,7 +53,7 @@ async function getOrCreateRole(guild, club) {
   return role;
 }
 
-// 📩 أمر إرسال القائمة
+// أمر إرسال القائمة
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
@@ -65,13 +62,7 @@ client.on("messageCreate", async (message) => {
 
     const embed = new EmbedBuilder()
       .setTitle("🏆 اختر أنديتك المفضلة")
-      .setDescription(
-        "🔹 الأندية السعودية:\n" +
-        saudiClubs.map(c => `• ${c.label}`).join("\n") +
-        "\n\n🔹 الأندية الأوروبية:\n" +
-        euClubs.map(c => `• ${c.label}`).join("\n") +
-        "\n\nيمكنك اختيار حتى 5 أندية"
-      );
+      .setDescription("اختر أنديتك من القائمة بالأسفل");
 
     const menu = new StringSelectMenuBuilder()
       .setCustomId("clubs_select")
@@ -97,15 +88,18 @@ client.on("messageCreate", async (message) => {
   }
 });
 
-// 🎯 التعامل مع الاختيار
+// التعامل مع الاختيارات
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isStringSelectMenu()) return;
   if (interaction.customId !== "clubs_select") return;
 
+  // حل مشكلة interaction failed
+  await interaction.deferReply({ ephemeral: true });
+
   const member = interaction.member;
   const clubNames = clubs.map(c => c.label);
 
-  // 🧹 تصفير
+  // تصفير
   if (interaction.values.includes("reset")) {
     const oldRoles = member.roles.cache.filter(r =>
       clubNames.includes(r.name)
@@ -115,9 +109,8 @@ client.on("interactionCreate", async (interaction) => {
       await member.roles.remove(role);
     }
 
-    return interaction.reply({
-      content: "تم حذف جميع الأندية ❌",
-      ephemeral: true
+    return interaction.editReply({
+      content: "تم حذف جميع الأندية ❌"
     });
   }
 
@@ -137,9 +130,8 @@ client.on("interactionCreate", async (interaction) => {
     await member.roles.add(role);
   }
 
-  await interaction.reply({
-    content: "تم تحديث أنديتك ✅",
-    ephemeral: true
+  await interaction.editReply({
+    content: "تم تحديث أنديتك ✅"
   });
 });
 
