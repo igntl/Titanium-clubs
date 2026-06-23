@@ -25,19 +25,39 @@ const TOKEN = process.env.TOKEN;
 
 // الربط (اسم الإيموجي = اسمك بالسيرفر)
 const clubs = {
+  // 🇸🇦 الدوري السعودي
   "hilal": { name: "هلالي", color: 0x0047AB },
   "nassr": { name: "نصراوي", color: 0xFCD116 },
   "ahli": { name: "أهلاوي", color: 0x006C35 },
   "ittihad": { name: "اتحادي", color: 0xFFC72C },
+  "taawoun": { name: "تعاوني", color: 0xFFD700 },
+  "shabab": { name: "شبابي", color: 0x000000 },
+  "ettifaq": { name: "اتفاقي", color: 0x0B8A42 },
+  "qadsiah": { name: "قدساوي", color: 0xD4AF37 },
 
+  // 🇪🇸 إسبانيا
   "realmadrid": { name: "Real Madrid", color: 0xFFFFFF },
   "barcelona": { name: "Barcelona", color: 0x004D98 },
+  "atletico": { name: "Atletico Madrid", color: 0xCB3524 },
+
+  // 🏴 إنجلترا
   "mancity": { name: "Manchester City", color: 0x6CABDD },
   "manutd": { name: "Manchester United", color: 0xDA291C },
   "liverpool": { name: "Liverpool", color: 0xC8102E },
   "chelsea": { name: "Chelsea", color: 0x034694 },
   "arsenal": { name: "Arsenal", color: 0xEF0107 },
-  "milan": { name: "AC Milan", color: 0x9B1B30 }
+
+  // 🇩🇪 ألمانيا
+  "bayern": { name: "Bayern Munich", color: 0xDC052D },
+  "dortmund": { name: "Borussia Dortmund", color: 0xFDE100 },
+
+  // 🇮🇹 إيطاليا
+  "juventus": { name: "Juventus", color: 0x000000 },
+  "inter": { name: "Inter Milan", color: 0x0068A8 },
+  "milan": { name: "AC Milan", color: 0x9B1B30 },
+
+  // 🇫🇷 فرنسا
+  "psg": { name: "Paris Saint-Germain", color: 0x004170 }
 };
 
 // إنشاء أو جلب رتبة
