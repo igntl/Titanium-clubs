@@ -83,7 +83,7 @@ client.on("messageCreate", async (message) => {
 
     const embed = new EmbedBuilder()
       .setTitle("🏆 اختر ناديك المفضل")
-      .setThumbnail("https://cdn.discordapp.com/attachments/1508418664691535943/1518880237612699678/DF3A4A4D-370B-4BEC-8E27-944DCF1E027B.png?ex=6a3b86f4&is=6a3a3574&hm=13f05ce23a82786c753257811421e52233301aef5b3dfd0c33ada2d3c9e60415&");
+      .setThumbnail("https://i.postimg.cc/qv77xhdn/DF3A4A4D-370B-4BEC-8E27-944DCF1E027B.png");
 
     const msg = await message.channel.send({ embeds: [embed] });
 
