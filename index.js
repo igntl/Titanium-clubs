@@ -32,7 +32,7 @@ const clubs = {
   "ittihad": { name: "اتحادي", color: 0xFFC72C },
   "taawoun": { name: "تعاوني", color: 0xFFD700 },
   "shabab": { name: "شبابي", color: 0x000000 },
-  "ettifaq": { name: "اتفاقي", color: 0x0B8A42 },
+  "Tottenham": { name: "Tottenham", color: 0x0B8A42 },
   "qadsiah": { name: "قدساوي", color: 0xD4AF37 },
 
   // 🇪🇸 إسبانيا
